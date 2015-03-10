@@ -35,6 +35,20 @@ s_bonus create(int n, int m, int cost)
 	return b;
 }
 
+struct s_comb
+{
+	vector<pos> patch;
+	int points;
+	s_bonus* e;
+};
+
+s_comb ccomb(vector<pos> p, int points, s_bonus* e)
+{
+	s_comb c;
+	c.patch = p, c.points = points, c.e = e;
+	return c;
+}
+
 bool error(char error[])
 {
 	std::cout << error << endl;
@@ -44,7 +58,7 @@ bool error(char error[])
 
 void recovery_path(const vector<int>& wave, int n, int m, int cur_n, int cur_m, vector<pos>& patch)
 {	
-	while (wave[m * cur_n + cur_m] != 1)
+	while (true)
 	{
 		patch.push_back(createpos(cur_n, cur_m));
 		int new_pos[4][3];
@@ -85,7 +99,8 @@ void recovery_path(const vector<int>& wave, int n, int m, int cur_n, int cur_m, 
 				min = i;
 			}
 		}
-		cur_n = new_pos[min][0], cur_m = new_pos[min][1];
+		if (wave[m * cur_n + cur_m] == 1)	break;
+		else cur_n = new_pos[min][0], cur_m = new_pos[min][1];
 	}
 }
 
@@ -166,6 +181,46 @@ bool patch(const vector<bool>& field, int n, int m, vector<pos>& patch, int star
 	return false;
 }
 
+void comb(vector<s_bonus>& bonus, vector<s_bonus*> visited, const vector<bool>& field, int n, int m, vector<pos>& curpatch, int& points, int start_n, int start_m, int finish_n, int finish_m, int count)
+{
+	if (count-- == 0)
+	{
+		if (patch(field, n, m, curpatch, start_n, start_m, finish_n, finish_m))
+		{
+			points += 200 - curpatch.size();
+		}
+	}
+	else
+	{
+		vector<s_bonus*>::iterator it;
+		int buf = (points == NOT_INIT ? 0 : points);
+		vector<pos> buf_patch = curpatch;
+		for (vector<s_bonus>::iterator curbonus = bonus.begin(); curbonus < bonus.end(); curbonus++)
+		{
+			it = find(visited.begin(), visited.end(), &(*curbonus));
+			if (it != visited.end())	continue;
+
+			s_comb c = ccomb(buf_patch, buf, &(*curbonus));
+
+			if (patch(field, n, m, c.patch, start_n, start_m, (*curbonus).pos_n, (*curbonus).pos_m))
+			{
+				vector<s_bonus*> new_visited = visited;
+				new_visited.push_back(&(*curbonus));
+				c.points += (*curbonus).cost;
+				
+				comb(bonus, new_visited, field, n, m, c.patch, c.points, (*curbonus).pos_n, (*curbonus).pos_m, finish_n, finish_m, count);
+
+				if (points == NOT_INIT || c.points > points)
+				{
+					points = c.points;
+					curpatch = c.patch;
+				}
+			}
+			else continue;
+		}
+	}
+}
+
 int main()
 {
 	int t = clock();
@@ -221,58 +276,24 @@ int main()
 		if (patch(field, n, m, best_patch, start_n, start_m, finish_n, finish_m))
 		{
 			int points = 200 - best_patch.size();
+
 			vector<pos> cur_patch;
 			int cur_points = NOT_INIT;
 			int step = 0;
-			for (vector<s_bonus>::iterator curbonus = bonus.begin(); curbonus < bonus.end(); curbonus++)
+			//	кобинируем
+			for (int i = 1, j = 0; i <= (int)bonus.size(); i++)
 			{	
-				//	кобинируем
-				for (int i = 0, j = 0; i < (int)bonus.size(); i++)
-				{	
-					//	если этот путь лучше прошлого
-					if (cur_points != NOT_INIT && cur_points > points)
-					{
-						points = cur_points;
-						best_patch = cur_patch;
-					}
-					cur_patch.clear();
-					cur_points = NOT_INIT;
-					j = 0;
-
-					//	идем от старта к первой точке
-					if (patch(field, n, m, cur_patch, start_n, start_m, (*curbonus).pos_n, (*curbonus).pos_m))
-					{
-						cur_points = (*curbonus).cost;
-					}
-					else break;
-					//	если успешно, то пробуем пойти к следующей
-					bool not_succes = false;
-					int old_n = (*curbonus).pos_n, old_m = (*curbonus).pos_m;
-					for (vector<s_bonus>::iterator next_bonus = bonus.begin(); next_bonus < bonus.end() && j < i; next_bonus++)
-					{
-						if (curbonus == next_bonus) continue;
-						if (patch(field, n, m, cur_patch, old_n, old_m, (*next_bonus).pos_n, (*next_bonus).pos_m))
-						{
-							cur_points += (*next_bonus).cost;
-							//	выводим
-							//input(cur_patch, cur_points, (*next_bonus).cost);
-							old_n = (*next_bonus).pos_n, old_m = (*next_bonus).pos_m;
-							j++;
-						}
-						else
-						{
-							not_succes = true;
-							break;
-						}
-					}
-					if (not_succes)	break;
-
-					//	если удалось пройти по точкам - идем к финишу
-					if (patch(field, n, m, cur_patch, old_n, old_m, finish_n, finish_m))
-					{
-						cur_points += 200 - cur_patch.size();
-					}
+				vector<s_bonus*> visited;
+				comb(bonus, visited, field, n, m, cur_patch, cur_points, start_n, start_m, finish_n, finish_m, i);
+				
+				//	если этот путь лучше прошлого
+				if (cur_points != NOT_INIT && cur_points > points)
+				{
+					points = cur_points;
+					best_patch = cur_patch;
 				}
+				cur_patch.clear();
+				cur_points = NOT_INIT;
 			}
 
 			//	Выводим конечный путь
