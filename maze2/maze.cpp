@@ -78,16 +78,13 @@ void recovery_path(const vector<int>& wave, int n, int m, int cur_n, int cur_m, 
 		else	new_pos[3][2] = NOT_INIT;
 
 		int min = 0;
-		/*for (int i = 1; i < 4; i++)
+		for (int i = 1; i < 4; i++)
 		{
 			if (0 < new_pos[i][2] && new_pos[i][2] < new_pos[min][2])
 			{
 				min = i;
 			}
-		}*/
-		if (0 < new_pos[1][2] && new_pos[1][2] < new_pos[min][2])	min = 1;
-		if (0 < new_pos[2][2] && new_pos[2][2] < new_pos[min][2])	min = 2;
-		if (0 < new_pos[3][2] && new_pos[3][2] < new_pos[min][2])	min = 3;
+		}
 		cur_n = new_pos[min][0], cur_m = new_pos[min][1];
 	}
 }
@@ -168,19 +165,6 @@ bool patch(const vector<bool>& field, int n, int m, vector<pos>& patch, int star
 	}
 	return false;
 }
-
-/*void input(vector<pos> patch, int points, int bonus)
-{
-	cout << "Текущие очки: " << ((float)points / 10.0) << ", Стоимость: " << bonus << endl;
-	for (vector<pos>::iterator cur = patch.begin(); cur < patch.end() - 1; cur++)
-	{
-		if ((*cur).pos_n >(*(cur + 1)).pos_n)		cout << "u";
-		else if ((*cur).pos_n < (*(cur + 1)).pos_n)	cout << "d";
-		else if ((*cur).pos_m >(*(cur + 1)).pos_m)	cout << "l";
-		else if ((*cur).pos_m < (*(cur + 1)).pos_m)	cout << "r";
-	}
-	cout << endl;
-}*/
 
 int main()
 {
