@@ -2,8 +2,6 @@
 #include <fstream>
 #include <vector>
 
-#include <time.h>
-
 #define NOT_INIT 0xFFFF
 
 using namespace std;
@@ -179,23 +177,8 @@ bool patch(const vector<bool>& field, int n, int m, vector<pos>& patch, int star
 	return false;
 }
 
-void input(vector<pos> patch, int points, int bonus)
-{
-	cout << "Текущие очки: " << ((float)points / 10.0) << ", Стоимость: " << bonus << endl;
-	for (vector<pos>::iterator cur = patch.begin(); cur < patch.end() - 1; cur++)
-	{
-		if ((*cur).pos_n >(*(cur + 1)).pos_n)		cout << "u";
-		else if ((*cur).pos_n < (*(cur + 1)).pos_n)	cout << "d";
-		else if ((*cur).pos_m >(*(cur + 1)).pos_m)	cout << "l";
-		else if ((*cur).pos_m < (*(cur + 1)).pos_m)	cout << "r";
-	}
-	cout << endl;
-}
-
 int main()
 {
-	int t = clock();
-
 	setlocale(LC_ALL, "russian");
 
 	ifstream F("maze.txt", ios::in);
@@ -244,19 +227,17 @@ int main()
 		if (start_m == 0)	return error("В лабиринте не задан старт");
 		if (finish_m == 0)	return error("В лабиринте не задан финиш");
 
-
 		vector<pos> best_patch;
 		if (patch(field, n, m, best_patch, start_n, start_m, finish_n, finish_m))
 		{
-			int points = 200 - (best_patch.size() - 1);
-			//cout << "Текущие очки: " << ((float)points / 10.0) << endl;
+			int points = 200 - best_patch.size();
 			vector<pos> cur_patch;
 			int cur_points = NOT_INIT;
 			int step = 0;
 			for (vector<s_bonus>::iterator curbonus = bonus.begin(); curbonus < bonus.end(); curbonus++)
 			{	
 				//	кобинируем
-				for (int i = 0, j = 0; i < bonus.size(); i++)
+				for (int i = 0, j = 0; i < (int)bonus.size(); i++)
 				{	
 					//	если этот путь лучше прошлого
 					if (cur_points != NOT_INIT && cur_points > points)
@@ -283,8 +264,6 @@ int main()
 						if (patch(field, n, m, cur_patch, old_n, old_m, (*next_bonus).pos_n, (*next_bonus).pos_m))
 						{
 							cur_points += (*next_bonus).cost;
-							//	выводим
-							//input(cur_patch, cur_points, (*next_bonus).cost);
 							old_n = (*next_bonus).pos_n, old_m = (*next_bonus).pos_m;
 							j++;
 						}
@@ -301,12 +280,9 @@ int main()
 					{
 						cur_points += 200 - cur_patch.size();
 					}
-
-					//	выводим
-					//input(cur_patch, cur_points, (*curbonus).cost);
 				}
 			}
-
+			
 			//	Выводим конечный путь
 			std::cout << "Лучшие очки: " << ((float)points / 10.0) << endl;
 			for (vector<pos>::iterator cur = best_patch.begin(); cur < best_patch.end() - 1; cur++)
@@ -322,8 +298,6 @@ int main()
 			return error("Пути не существует.");
 	}
 	else std::cout << "Файл с лабиринтом не существует" << endl;
-
-	std::cout << "Время работы: " << clock() - t << "мс" << endl;
 	std::system("pause");
 	return false;
 }
