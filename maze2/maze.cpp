@@ -87,7 +87,6 @@ void recovery_path(const vector<int>& wave, int n, int m, int cur_n, int cur_m, 
 			new_pos[3][2] = wave[m * new_pos[3][0] + new_pos[3][1]];
 		}
 		else	new_pos[3][2] = NOT_INIT;
-
 		int min = 0;
 		for (int i = 1; i < 4; i++)
 		{
@@ -165,7 +164,6 @@ bool patch(const vector<bool>& field, int n, int m, vector<pos>& patch, int star
 		//	пускаем волну обратно, которая соберет путь
 		vector<pos> buf_patch;
 		recovery_path(result, n, m, finish_n, finish_m, buf_patch);
-
 		for (vector<pos>::iterator cur = buf_patch.end() - 1; cur > buf_patch.begin(); cur--)
 		{
 			patch.push_back(*cur);
@@ -203,7 +201,6 @@ void comb(vector<s_bonus>& bonus, vector<s_bonus*> visited, const vector<bool>& 
 				c.points += (*curbonus).cost;
 				
 				comb(bonus, new_visited, field, n, m, c.patch, c.points, (*curbonus).pos_n, (*curbonus).pos_m, finish_n, finish_m, count);
-
 				if (points == NOT_INIT || c.points > points)
 				{
 					points = c.points;
@@ -225,32 +222,26 @@ int main(int argc, char *argv[])
 	{
 		vector<bool> field;
 		vector<s_bonus> bonus;
-		int n = 0, m = 0,
+		int 	n = 0, m = 0,
 			start_n = 0, start_m = 0,
 			finish_n = 0, finish_m = 0;
 		char ch;
 		for (int i = 0; (ch = (char)F.get()) != EOF; i++)
 		{
-			if (ch == '#')			field.push_back(true);
+			if (ch == '#')		field.push_back(true);
 			else if (ch == '\n')
 			{
 				if (n == 0)	m = i;
 				else if (i != m || field[n * m + i - 1] == false)
-				{
 					return error("Неверный формат лабиринта");
-				}
 				i = -1, n++;
 			}
 			else
 			{
 				if (n == 0 || i == 0 || i >= m)
-				{
 					return error("Неверный формат лабиринта");
-				}
 				if (ch >= '1' && ch <= '9')
-				{
 					bonus.push_back(create(n, i, atoi(&ch) * 10));
-				}		
 				else if (ch == '*')	start_n = n, start_m = i;
 				else if (ch == 'e')	finish_n = n, finish_m = i;
 				field.push_back(false);
@@ -259,9 +250,7 @@ int main(int argc, char *argv[])
 		for (int i = n * m; i < n * m + m; i++)
 		{
 			if (field[i] == false)
-			{
 				return error("Неверный формат лабиринта");
-			}
 		}
 		if (start_m == 0)	return error("В лабиринте не задан старт");
 		if (finish_m == 0)	return error("В лабиринте не задан финиш");
@@ -270,7 +259,6 @@ int main(int argc, char *argv[])
 		if (patch(field, n, m, best_patch, start_n, start_m, finish_n, finish_m))
 		{
 			int points = 200 - best_patch.size();
-
 			vector<pos> cur_patch;
 			int cur_points = NOT_INIT;
 			//	кобинируем
@@ -287,7 +275,6 @@ int main(int argc, char *argv[])
 				cur_patch.clear();
 				cur_points = NOT_INIT;
 			}
-
 			//	Выводим конечный путь
 			cout << "Лучшие очки: " << ((float)points / 10.0) << endl;
 			for (vector<pos>::iterator cur = best_patch.begin(); cur < best_patch.end() - 1; cur++)
