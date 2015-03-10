@@ -2,8 +2,6 @@
 #include <fstream>
 #include <vector>
 
-#include <time.h>
-
 #define NOT_INIT 0xFFFF
 
 using namespace std;
@@ -223,9 +221,7 @@ void comb(vector<s_bonus>& bonus, vector<s_bonus*> visited, const vector<bool>& 
 
 int main()
 {
-	int t = clock();
 	setlocale(LC_ALL, "russian");
-
 	ifstream F("maze.txt", ios::in);
 	if (F)
 	{
@@ -311,8 +307,6 @@ int main()
 			return error("Пути не существует.");
 	}
 	else std::cout << "Файл с лабиринтом не существует" << endl;
-
-	std::cout << "Время работы: " << clock() - t << "мс" << endl;
 	std::system("pause");
 	return false;
 }
