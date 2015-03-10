@@ -49,8 +49,7 @@ s_comb ccomb(vector<pos> p, int points, s_bonus* e)
 
 bool error(char error[])
 {
-	std::cout << error << endl;
-	std::system("pause");
+	cerr << "[Ошибка]: " << error << endl;
 	return false;
 }
 
@@ -105,15 +104,13 @@ void recovery_path(const vector<int>& wave, int n, int m, int cur_n, int cur_m, 
 bool wave(const vector<bool>& field, int n, int m, vector<int>& result, int cur_n, int cur_m, int finish_n, int finish_m)
 {	
 	int step = 1, size = 1, new_n, new_m;
-	vector<pos> list;
-	list.push_back(createpos(cur_n, cur_m));
+	vector<pos> list(1, createpos(cur_n, cur_m));
 	vector<pos>::iterator cur = list.begin();
 	bool is_finish = false;
 	while (cur < list.end())
 	{
 		cur_n = (*cur).pos_n, cur_m = (*cur).pos_m;
 		list.erase(cur);	//	удаляем текущий
-
 		//	если не финиш
 		if (cur_n != finish_n || cur_m != finish_m)
 		{	
@@ -199,7 +196,6 @@ void comb(vector<s_bonus>& bonus, vector<s_bonus*> visited, const vector<bool>& 
 			if (it != visited.end())	continue;
 
 			s_comb c = ccomb(buf_patch, buf, &(*curbonus));
-
 			if (patch(field, n, m, c.patch, start_n, start_m, (*curbonus).pos_n, (*curbonus).pos_m))
 			{
 				vector<s_bonus*> new_visited = visited;
@@ -219,10 +215,12 @@ void comb(vector<s_bonus>& bonus, vector<s_bonus*> visited, const vector<bool>& 
 	}
 }
 
-int main()
+int main(int argc, char *argv[])
 {
 	setlocale(LC_ALL, "russian");
-	ifstream F("maze.txt", ios::in);
+	if (argc < 2 || argv[1] == NULL)
+		return error("Не задано имя файла");
+	ifstream F(argv[1], ios::in);
 	if (F)
 	{
 		vector<bool> field;
@@ -275,13 +273,11 @@ int main()
 
 			vector<pos> cur_patch;
 			int cur_points = NOT_INIT;
-			int step = 0;
 			//	кобинируем
-			for (int i = 1, j = 0; i <= (int)bonus.size(); i++)
+			for (int i = 1, s = (int)bonus.size(); i <= s; i++)
 			{	
 				vector<s_bonus*> visited;
 				comb(bonus, visited, field, n, m, cur_patch, cur_points, start_n, start_m, finish_n, finish_m, i);
-				
 				//	если этот путь лучше прошлого
 				if (cur_points != NOT_INIT && cur_points > points)
 				{
@@ -293,7 +289,7 @@ int main()
 			}
 
 			//	Выводим конечный путь
-			std::cout << "Лучшие очки: " << ((float)points / 10.0) << endl;
+			cout << "Лучшие очки: " << ((float)points / 10.0) << endl;
 			for (vector<pos>::iterator cur = best_patch.begin(); cur < best_patch.end() - 1; cur++)
 			{
 				if ((*cur).pos_n > (*(cur + 1)).pos_n)		cout << "u";
@@ -306,7 +302,6 @@ int main()
 		else 
 			return error("Пути не существует.");
 	}
-	else std::cout << "Файл с лабиринтом не существует" << endl;
-	std::system("pause");
+	else cout << "Файл с лабиринтом не существует" << endl;
 	return false;
 }
