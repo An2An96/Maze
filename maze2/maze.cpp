@@ -2,6 +2,8 @@
 #include <fstream>
 #include <vector>
 
+#include <time.h>
+
 #define NOT_INIT 0xFFFF
 
 using namespace std;
@@ -42,62 +44,52 @@ bool error(char error[])
 
 void recovery_path(const vector<int>& wave, int n, int m, int cur_n, int cur_m, vector<pos>& patch)
 {	
-	patch.push_back(createpos(cur_n, cur_m));
-	if (wave[m * cur_n + cur_m] == 1)
+	while (wave[m * cur_n + cur_m] != 1)
 	{
-		return;
-	}
-	int new_pos[4][3];
-	//	вверх
-	new_pos[0][0] = cur_n - 1, new_pos[0][1] = cur_m;
-	if (new_pos[0][0] > 0 && wave[m * new_pos[0][0] + new_pos[0][1]])
-	{
-		new_pos[0][2] = wave[m * new_pos[0][0] + new_pos[0][1]];
-	}
-	else
-	{
-		new_pos[0][2] = 0;
-	}
-	//	вниз
-	new_pos[1][0] = cur_n + 1, new_pos[1][1] = cur_m;
-	if (new_pos[1][0] < n && wave[m * new_pos[1][0] + new_pos[1][1]])
-	{
-		new_pos[1][2] = wave[m * new_pos[1][0] + new_pos[1][1]];
-	}
-	else
-	{
-		new_pos[1][2] = 0;
-	}
-	//	влево
-	new_pos[2][0] = cur_n, new_pos[2][1] = cur_m - 1;
-	if (new_pos[2][1] > 0 && wave[m * new_pos[2][0] + new_pos[2][1]])
-	{
-		new_pos[2][2] = wave[m * new_pos[2][0] + new_pos[2][1]];
-	}
-	else
-	{
-		new_pos[2][2] = 0;
-	}
-	//	вправо
-	new_pos[3][0] = cur_n, new_pos[3][1] = cur_m + 1;
-	if (new_pos[3][1] < m && wave[m * new_pos[3][0] + new_pos[3][1]])
-	{
-		new_pos[3][2] = wave[m * new_pos[3][0] + new_pos[3][1]];
-	}
-	else
-	{
-		new_pos[3][2] = 0;
-	}
-
-	int max = 0;
-	for (int i = 1; i < 4; i++)
-	{
-		if (new_pos[max][2] == 0 || 0 < new_pos[i][2] && new_pos[i][2] < new_pos[max][2])
+		patch.push_back(createpos(cur_n, cur_m));
+		int new_pos[4][3];
+		//	вверх
+		new_pos[0][0] = cur_n - 1, new_pos[0][1] = cur_m;
+		if (new_pos[0][0] > 0 && wave[m * new_pos[0][0] + new_pos[0][1]])
 		{
-			max = i;
+			new_pos[0][2] = wave[m * new_pos[0][0] + new_pos[0][1]];
 		}
+		else    new_pos[0][2] = NOT_INIT;
+		//	вниз
+		new_pos[1][0] = cur_n + 1, new_pos[1][1] = cur_m;
+		if (new_pos[1][0] < n && wave[m * new_pos[1][0] + new_pos[1][1]])
+		{
+			new_pos[1][2] = wave[m * new_pos[1][0] + new_pos[1][1]];
+		}
+		else	new_pos[1][2] = NOT_INIT;
+		//	влево
+		new_pos[2][0] = cur_n, new_pos[2][1] = cur_m - 1;
+		if (new_pos[2][1] > 0 && wave[m * new_pos[2][0] + new_pos[2][1]])
+		{
+			new_pos[2][2] = wave[m * new_pos[2][0] + new_pos[2][1]];
+		}
+		else	new_pos[2][2] = NOT_INIT;
+		//	вправо
+		new_pos[3][0] = cur_n, new_pos[3][1] = cur_m + 1;
+		if (new_pos[3][1] < m && wave[m * new_pos[3][0] + new_pos[3][1]])
+		{
+			new_pos[3][2] = wave[m * new_pos[3][0] + new_pos[3][1]];
+		}
+		else	new_pos[3][2] = NOT_INIT;
+
+		int min = 0;
+		/*for (int i = 1; i < 4; i++)
+		{
+			if (0 < new_pos[i][2] && new_pos[i][2] < new_pos[min][2])
+			{
+				min = i;
+			}
+		}*/
+		if (0 < new_pos[1][2] && new_pos[1][2] < new_pos[min][2])	min = 1;
+		if (0 < new_pos[2][2] && new_pos[2][2] < new_pos[min][2])	min = 2;
+		if (0 < new_pos[3][2] && new_pos[3][2] < new_pos[min][2])	min = 3;
+		cur_n = new_pos[min][0], cur_m = new_pos[min][1];
 	}
-	recovery_path(wave, n, m, new_pos[max][0], new_pos[max][1], patch);
 }
 
 bool wave(const vector<bool>& field, int n, int m, vector<int>& result, int cur_n, int cur_m, int finish_n, int finish_m)
@@ -177,8 +169,22 @@ bool patch(const vector<bool>& field, int n, int m, vector<pos>& patch, int star
 	return false;
 }
 
+/*void input(vector<pos> patch, int points, int bonus)
+{
+	cout << "Текущие очки: " << ((float)points / 10.0) << ", Стоимость: " << bonus << endl;
+	for (vector<pos>::iterator cur = patch.begin(); cur < patch.end() - 1; cur++)
+	{
+		if ((*cur).pos_n >(*(cur + 1)).pos_n)		cout << "u";
+		else if ((*cur).pos_n < (*(cur + 1)).pos_n)	cout << "d";
+		else if ((*cur).pos_m >(*(cur + 1)).pos_m)	cout << "l";
+		else if ((*cur).pos_m < (*(cur + 1)).pos_m)	cout << "r";
+	}
+	cout << endl;
+}*/
+
 int main()
 {
+	int t = clock();
 	setlocale(LC_ALL, "russian");
 
 	ifstream F("maze.txt", ios::in);
@@ -264,6 +270,8 @@ int main()
 						if (patch(field, n, m, cur_patch, old_n, old_m, (*next_bonus).pos_n, (*next_bonus).pos_m))
 						{
 							cur_points += (*next_bonus).cost;
+							//	выводим
+							//input(cur_patch, cur_points, (*next_bonus).cost);
 							old_n = (*next_bonus).pos_n, old_m = (*next_bonus).pos_m;
 							j++;
 						}
@@ -282,7 +290,7 @@ int main()
 					}
 				}
 			}
-			
+
 			//	Выводим конечный путь
 			std::cout << "Лучшие очки: " << ((float)points / 10.0) << endl;
 			for (vector<pos>::iterator cur = best_patch.begin(); cur < best_patch.end() - 1; cur++)
@@ -298,6 +306,8 @@ int main()
 			return error("Пути не существует.");
 	}
 	else std::cout << "Файл с лабиринтом не существует" << endl;
+
+	std::cout << "Время работы: " << clock() - t << "мс" << endl;
 	std::system("pause");
 	return false;
 }
