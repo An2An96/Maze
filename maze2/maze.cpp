@@ -214,8 +214,9 @@ int main(int argc, char *argv[])
 			start_n = 0, start_m = 0,
 			finish_n = 0, finish_m = 0;
 		char ch;
-		for (int i = 0; (ch = (char)F.get()) != EOF; i++)
+		for (int i = 0; F.eof() == false; i++)
 		{
+			ch = (char)F.get();
 			if (ch == '#')			field.push_back(true);
 			else if (ch == '\n')
 			{
