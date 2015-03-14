@@ -214,9 +214,14 @@ int main(int argc, char *argv[])
 			start_n = 0, start_m = 0,
 			finish_n = 0, finish_m = 0;
 		char ch;
-		for (int i = 0; F.eof() == false; i++)
+		int i = 0;
+		while (F.eof() == false)
 		{
 			ch = (char)F.get();
+			if (ch == 0xFFFFFFBB || ch == 0xFFFFFFBF || ch == 0xFFFFFFEF || ch == 0xFFFFFFFF	//	UTF-8
+			||	ch == NULL || ch == 0xD || ch == 0xFFFFFFFE)	//	Юникод	
+				continue;
+
 			if (ch == '#')			field.push_back(true);
 			else if (ch == '\n')
 			{
@@ -241,6 +246,7 @@ int main(int argc, char *argv[])
 				else if (ch == 'e')	finish_n = n, finish_m = i;
 				field.push_back(false);
 			}
+			i++;
 		}
 		for (int i = n * m; i < n * m + m; i++)
 		{
