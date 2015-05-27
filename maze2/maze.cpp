@@ -6,7 +6,7 @@
 
 using namespace std;
 
-struct pos	{	int pos_n, pos_m;	};
+struct pos	{ int pos_n, pos_m; };
 
 pos createpos(int n, int m)
 {
@@ -15,7 +15,7 @@ pos createpos(int n, int m)
 	return p;
 }
 
-struct s_bonus	{	int pos_n, pos_m, cost;	};
+struct s_bonus	{ int pos_n, pos_m, cost; };
 
 s_bonus create(int n, int m, int cost)
 {
@@ -24,7 +24,7 @@ s_bonus create(int n, int m, int cost)
 	return b;
 }
 
-struct s_comb	{	vector<pos> patch;	int points;	s_bonus* e;	};
+struct s_comb	{ vector<pos> patch;	int points;	s_bonus* e; };
 
 s_comb ccomb(vector<pos> p, int points, s_bonus* e)
 {
@@ -40,7 +40,7 @@ bool error(char error[])
 }
 
 void recovery_path(const vector<int>& wave, int n, int m, int cur_n, int cur_m, vector<pos>& patch)
-{	
+{
 	while (true)
 	{
 		patch.push_back(createpos(cur_n, cur_m));
@@ -87,7 +87,7 @@ void recovery_path(const vector<int>& wave, int n, int m, int cur_n, int cur_m, 
 }
 
 bool wave(const vector<bool>& field, int n, int m, vector<int>& result, int cur_n, int cur_m, int finish_n, int finish_m)
-{	
+{
 	int step = 1, size = 1, new_n, new_m;
 	vector<pos> list(1, createpos(cur_n, cur_m));
 	vector<pos>::iterator cur = list.begin();
@@ -98,7 +98,7 @@ bool wave(const vector<bool>& field, int n, int m, vector<int>& result, int cur_
 		list.erase(cur);	//	удаляем текущий
 		//	если не финиш
 		if (cur_n != finish_n || cur_m != finish_m)
-		{	
+		{
 			//	вверх
 			new_n = cur_n - 1, new_m = cur_m;
 			if (new_n > 0 && field[m * new_n + new_m] == false && result[m * new_n + new_m] == 0)
@@ -112,14 +112,14 @@ bool wave(const vector<bool>& field, int n, int m, vector<int>& result, int cur_
 			{
 				result[m * new_n + new_m] = step + 1;
 				list.push_back(createpos(new_n, new_m));
-			}	
+			}
 			//	влево
 			new_n = cur_n, new_m = cur_m - 1;
 			if (new_m > 0 && field[m * new_n + new_m] == false && result[m * new_n + new_m] == 0)
 			{
 				result[m * new_n + new_m] = step + 1;
 				list.push_back(createpos(new_n, new_m));
-			}	
+			}
 			//	вправо
 			new_n = cur_n, new_m = cur_m + 1;
 			if (new_m < m && field[m * new_n + new_m] == false && result[m * new_n + new_m] == 0)
@@ -146,7 +146,7 @@ bool patch(const vector<bool>& field, int n, int m, vector<pos>& patch, int star
 	result.at(m * start_n + start_m) = 1;
 	//	пускаем волну которая заполняет кол-во шагов
 	if (wave(field, n, m, result, start_n, start_m, finish_n, finish_m))
-	{	
+	{
 		//	пускаем волну обратно, которая соберет путь
 		vector<pos> buf_patch;
 		recovery_path(result, n, m, finish_n, finish_m, buf_patch);
@@ -187,7 +187,7 @@ void comb(vector<s_bonus>& bonus, vector<s_bonus*> visited, const vector<bool>& 
 				vector<s_bonus*> new_visited = visited;
 				new_visited.push_back(&(*curbonus));
 				c.points += (*curbonus).cost + 1;
-				
+
 				comb(bonus, new_visited, field, n, m, c.patch, c.points, (*curbonus).pos_n, (*curbonus).pos_m, finish_n, finish_m, count);
 				if (points == NOT_INIT || c.points > points)
 				{
@@ -210,38 +210,60 @@ int main(int argc, char *argv[])
 	{
 		vector<bool> field;
 		vector<s_bonus> bonus;
-		int n = 0, m = 0,
+
+		int n = 0, m = 0, i = 0,
 			start_n = 0, start_m = 0,
 			finish_n = 0, finish_m = 0;
 		char ch;
-		int i = 0;
+		bool oldSpace = false,
+			startLBreak = false,
+			startMaze = false;
+
 		while (F.eof() == false)
 		{
 			ch = (char)F.get();
 			if (ch == 0xFFFFFFBB || ch == 0xFFFFFFBF || ch == 0xFFFFFFEF || ch == 0xFFFFFFFF	//	UTF-8
-			||	ch == NULL || ch == 0xD || ch == 0xFFFFFFFE)	//	Юникод	
+				|| ch == NULL || ch == 0xD || ch == 0xFFFFFFFE)	//	Юникод	
 				continue;
 
-			if (ch == '#')			field.push_back(true);
+			if (ch == '#')
+			{	
+				startMaze = true;
+				if (oldSpace)
+				{
+					return error("Неверный формат лабиринта");
+				}
+				field.push_back(true);
+				if (startLBreak && i == 0)	n++;
+			}
 			else if (ch == '\n')
 			{
+				if (startMaze == false)	continue;
+				
+				startLBreak = true;
 				if (n == 0)	m = i;
+				else if (i == 0)
+				{
+					oldSpace = true;
+					continue;
+				}
 				else if (i != m || field[n * m + i - 1] == false)
 				{
 					return error("Неверный формат лабиринта");
 				}
-				i = -1, n++;
+				i = -1;
 			}
 			else
 			{
-				if (n == 0 || i == 0 || i >= m)
+				startMaze = true;
+				if (n == 0 || i == 0 || i >= m || oldSpace)
 				{
 					return error("Неверный формат лабиринта");
 				}
 				if (ch >= '1' && ch <= '9')
 				{
 					bonus.push_back(create(n, i, atoi(&ch) * 10));
-				}		
+				}
 				else if (ch == '*')	start_n = n, start_m = i;
 				else if (ch == 'e')	finish_n = n, finish_m = i;
 				field.push_back(false);
@@ -258,6 +280,8 @@ int main(int argc, char *argv[])
 		if (start_m == 0)	return error("В лабиринте не задан старт");
 		if (finish_m == 0)	return error("В лабиринте не задан финиш");
 
+
+
 		vector<pos> best_patch;
 		if (patch(field, n, m, best_patch, start_n, start_m, finish_n, finish_m))
 		{
@@ -267,7 +291,7 @@ int main(int argc, char *argv[])
 			int cur_points = NOT_INIT;
 			//	комбинируем
 			for (int i = 1, s = (int)bonus.size(); i <= s; i++)
-			{	
+			{
 				vector<s_bonus*> visited;
 				comb(bonus, visited, field, n, m, cur_patch, cur_points, start_n, start_m, finish_n, finish_m, i);
 				//	если этот путь лучше прошлого
@@ -283,14 +307,14 @@ int main(int argc, char *argv[])
 			cout << "Лучшие очки: " << (float)points / 10 << endl;
 			for (vector<pos>::iterator cur = best_patch.begin(); cur < best_patch.end() - 1; cur++)
 			{
-				if ((*cur).pos_n > (*(cur + 1)).pos_n)		cout << "u";
+				if ((*cur).pos_n >(*(cur + 1)).pos_n)		cout << "u";
 				else if ((*cur).pos_n < (*(cur + 1)).pos_n)	cout << "d";
-				else if ((*cur).pos_m > (*(cur + 1)).pos_m)	cout << "l";
+				else if ((*cur).pos_m >(*(cur + 1)).pos_m)	cout << "l";
 				else if ((*cur).pos_m < (*(cur + 1)).pos_m)	cout << "r";
 			}
 			cout << endl;
 		}
-		else 
+		else
 			return error("Пути не существует.");
 	}
 	else cout << "Файл с лабиринтом не существует" << endl;
